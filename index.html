@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche d'Enquête</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f0f4f8;
+    color: #1a202c;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #1a202c;
+    background: #fff;
+    border: 2px solid #2b6cb0;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #cbd5e0;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .section-header {
+    background: #2b6cb0;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: .55rem 1.1rem;
+  }
+
+  .section-body { padding: 1rem 1.25rem; }
+
+  .sub {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin: .9rem 0 .45rem;
+    padding-bottom: .25rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .sub:first-child { margin-top: 0; }
+
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem .9rem;
+    margin-bottom: .65rem;
+    align-items: flex-end;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 3px; }
+  .field label { font-size: 11px; color: #718096; font-weight: 600; }
+  .field input[type=text],
+  .field input[type=number],
+  .field select,
+  .field textarea {
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 13px;
+    background: #f7fafc;
+    color: #1a202c;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: #2b6cb0;
+    background: #fff;
+  }
+  .field textarea { resize: vertical; min-height: 55px; width: 100%; }
+
+  .check-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem .8rem;
+    margin-bottom: .5rem;
+  }
+
+  .check-item, .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #2d3748;
+  }
+
+  .check-item input[type=checkbox],
+  .radio-item input[type=radio] {
+    accent-color: #2b6cb0;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+
+  .radio-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem .8rem;
+    margin-bottom: .5rem;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #edf2f7;
+    margin: .9rem 0;
+  }
+
+  .num-field { width: 90px; }
+  .num-field-sm { width: 70px; }
+  .num-field-lg { width: 130px; }
+
+  .submit-area { text-align: center; margin-top: 1.5rem; }
+
+  button[type=submit] {
+    background: #2b6cb0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .75rem 3rem;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: background .15s, transform .1s;
+  }
+  button[type=submit]:hover { background: #2c5282; }
+  button[type=submit]:active { transform: scale(.98); }
+
+  /* ---- MODAL ---- */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+  #modal-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 720px;
+    width: 95%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  #modal-box h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #2b6cb0;
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 2px solid #bee3f8;
+  }
+  #modal-content { font-size: 13px; line-height: 1.8; }
+  .modal-row { display: flex; margin-bottom: .3rem; }
+  .modal-key {
+    min-width: 220px;
+    font-weight: 600;
+    color: #4a5568;
+    padding-right: 1rem;
+    font-size: 12px;
+  }
+  .modal-val { color: #1a202c; }
+  .modal-section-title {
+    background: #ebf8ff;
+    color: #2b6cb0;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .3rem .7rem;
+    border-radius: 4px;
+    margin: .75rem 0 .4rem;
+  }
+  #modal-close {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #718096;
+  }
+  #modal-close:hover { background: #f7fafc; }
+
+  .print-btn {
+    background: none;
+    border: 1px solid #2b6cb0;
+    color: #2b6cb0;
+    border-radius: 6px;
+    padding: 5px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-left: .5rem;
+  }
+  .print-btn:hover { background: #ebf8ff; }
+
+  @media (max-width: 600px) {
+    .field-row { gap: .5rem; }
+    .num-field, .num-field-sm, .num-field-lg { width: 100%; }
+    .modal-key { min-width: 160px; font-size: 11px; }
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { padding: .5rem; }
+    button[type=submit], #modal-overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Fiche d'Enquête</h1>
+
+  <form id="mainForm" name="fiche-enquete" method="POST" data-netlify="true" onsubmit="handleSubmit(event)" novalidate>
+    <input type="hidden" name="form-name" value="fiche-enquete">
+
+    <!-- ===== ID CLIENT ===== -->
+    <div class="section">
+      <div class="section-header" style="background:#1a365d">Identification du Client</div>
+      <div class="section-body" style="display:flex;align-items:center;gap:.5rem">
+        <label style="font-size:13px;font-weight:700;color:#2b6cb0;white-space:nowrap">ID Client :</label>
+        <input type="text" name="id_client" placeholder="" style="border:2px solid #2b6cb0;border-radius:6px;padding:6px 12px;font-size:15px;font-weight:700;letter-spacing:.06em;width:220px;background:#f7fafc;color:#1a202c">
+      </div>
+    </div>
+
+    <!-- ===== SECTION I ===== -->
+    <div class="section">
+      <div class="section-header">I — Données Socio-Démographiques et de Séjour</div>
+      <div class="section-body">
+
+        <div class="field-row">
+          <div class="field num-field"><label>Durée d'hospitalisation (jours)</label><input type="number" name="duree_hospit" min="0" placeholder="ex: 5"></div>
+          <div class="field num-field-sm"><label>Âge (mois)</label><input type="number" name="age_mois" min="0" placeholder="ex: 8"></div>
+          <div class="field num-field-sm"><label>Âge (années)</label><input type="number" name="age_annees" min="0" placeholder="ex: 3"></div>
+        </div>
+
+        <div class="sub">Sexe</div>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="sexe" value="Masculin"> Masculin</label>
+          <label class="radio-item"><input type="radio" name="sexe" value="Féminin"> Féminin</label>
+        </div>
+
+        <div class="sub">Occupation des parents</div>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="occup" value="Salarié"> Salarié</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Sans profession fixe"> Sans profession fixe</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Élève"> Élève</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Étudiant"> Étudiant</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Travailleur agricole"> Travailleur agricole</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Chauffeur"> Chauffeur</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Ouvrier du bâtiment"> Ouvrier du bâtiment</label>
+          <label class="check-item"><input type="checkbox" name="occup" value="Autres"> Autres</label>
+        </div>
+
+        <div class="sub">Service de provenance</div>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="service_prov" value="Urgence"> Urgence</label>
+          <label class="radio-item"><input type="radio" name="service_prov" value="Hospitalisation"> Hospitalisation</label>
+          <label class="radio-item"><input type="radio" name="service_prov" value="Bloc opératoire"> Bloc opératoire</label>
+          <label class="radio-item"><input type="radio" name="service_prov" value="Domicile"> Domicile</label>
+        </div>
+
+        <div class="sub">Lieu de provenance</div>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="CHU Angré"> CHU Angré</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="CHU Cocody"> CHU Cocody</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="CHU Treichville"> CHU Treichville</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="CHU Yopougon"> CHU Yopougon</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="CHU Bouaké"> CHU Bouaké</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="Hôpital privé"> Hôpital privé</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="Autre structure publique"> Autre structure publique</label>
+          <label class="check-item"><input type="checkbox" name="lieu_prov" value="Domicile"> Domicile</label>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION III ===== -->
+    <div class="section">
+      <div class="section-header">III — Données Cliniques d'Admission</div>
+      <div class="section-body">
+
+        <div class="sub">Antécédents</div>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="atcd" value="Asthme"> Asthme</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Diabète"> Diabète</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Hypertension artérielle"> Hypertension artérielle</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="AVC"> AVC</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="UGD"> UGD</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Drépanocytose"> Drépanocytose</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Anémie à répétition"> Anémie à répétition</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Prématurité"> Prématurité</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Vaccin non à jour"> Vaccin non à jour</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Vaccin à jour"> Vaccin à jour</label>
+          <label class="check-item"><input type="checkbox" name="atcd" value="Cardiopathie"> Cardiopathie</label>
+        </div>
+        <div class="field" style="margin-top:.4rem"><label>Autres antécédents</label><textarea name="atcd_autres" rows="2"></textarea></div>
+
+        <hr>
+        <div class="sub">a. Motif d'admission</div>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="motif" value="Cardiovasculaire"> Cardiovasculaire</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Respiratoire"> Respiratoire</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Neurologique"> Neurologique</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Traumatisme grave"> Traumatisme grave</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Métabolique"> Métabolique</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Intoxication"> Intoxication</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Tumorale"> Tumorale</label>
+          <label class="check-item"><input type="checkbox" name="motif" value="Autres"> Autres</label>
+        </div>
+        <div class="sub" style="margin-top:.6rem">Nature de l'affection</div>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="nature_affection" value="Médicale"> Médicale</label>
+          <label class="radio-item"><input type="radio" name="nature_affection" value="Chirurgicale"> Chirurgicale</label>
+        </div>
+
+        <hr>
+        <div class="sub">b. Bilan hémodynamique</div>
+        <div class="sub" style="text-transform:none;font-size:12px;border:none;margin-top:.3rem">Coloration des muqueuses</div>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="coloration" value="Pâle"> Pâle</label>
+          <label class="radio-item"><input type="radio" name="coloration" value="Bien colorées"> Bien colorées</label>
+          <label class="radio-item"><input type="radio" name="coloration" value="Moyennement colorées"> Moyennement colorées</label>
+        </div>
+        <div class="field-row" style="margin-top:.4rem">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Ictère</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="ictere" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="ictere" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Sueurs</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="sueurs" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="sueurs" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Température des extrémités</div>
+            <div class="radio-row">
+              <label class="radio-item"><input type="radio" name="temp_extrem" value="Chaud"> Chaud</label>
+              <label class="radio-item"><input type="radio" name="temp_extrem" value="Froid"> Froid</label>
+              <label class="radio-item"><input type="radio" name="temp_extrem" value="Sans particularité"> Sans particularité</label>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Pression artérielle</div>
+            <div class="radio-row">
+              <label class="radio-item"><input type="radio" name="PA" value="Normale"> Normale</label>
+              <label class="radio-item"><input type="radio" name="PA" value="Hypertension"> Hypertension</label>
+              <label class="radio-item"><input type="radio" name="PA" value="Hypotension"> Hypotension</label>
+            </div>
+          </div>
+          <div class="field num-field-sm"><label>FC (bpm)</label><input type="number" name="FC" placeholder="ex: 110"></div>
+        </div>
+
+        <hr>
+        <div class="sub">c. Bilan respiratoire</div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Fréquence respiratoire</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="FR" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="FR" value="Anormale"> Anormale</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Détresse respiratoire</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="detresse_resp" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="detresse_resp" value="Non"> Non</label></div>
+          </div>
+          <div class="field num-field-sm"><label>SpO2 (%)</label><input type="number" name="SpO2" min="0" max="100" placeholder="ex: 98"></div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Épanchement pleural</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="epanch_pleural" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="epanch_pleural" value="Non"> Non</label></div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="sub">d. Bilan neurologique</div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Humeur</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="humeur" value="Calme"> Calme</label><label class="radio-item"><input type="radio" name="humeur" value="Agité"> Agité</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Conscience</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="conscience" value="Conscient"> Conscient</label><label class="radio-item"><input type="radio" name="conscience" value="Inconscient"> Inconscient</label></div>
+          </div>
+          <div class="field num-field-sm"><label>Score de Glasgow</label><input type="number" name="glasgow" min="3" max="15" placeholder="3–15"></div>
+          <div class="field num-field-sm"><label>Score de Blantyre</label><input type="number" name="blantyre" min="0" max="5" placeholder="0–5"></div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Déficit moteur</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="deficit_moteur" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="deficit_moteur" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Convulsions</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="convulsions" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="convulsions" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Raideur de la nuque</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="raideur_nuque" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="raideur_nuque" value="Non"> Non</label></div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="sub">e. Bilan digestif</div>
+        <div class="radio-row">
+          <span style="font-size:13px;margin-right:6px">Examen normal :</span>
+          <label class="radio-item"><input type="radio" name="digestif_normal" value="Oui"> Oui</label>
+          <label class="radio-item"><input type="radio" name="digestif_normal" value="Non"> Non</label>
+        </div>
+
+        <hr>
+        <div class="sub">Bilan hématologique</div>
+        <div class="field-row">
+          <div class="field num-field-sm"><label>Hb (g/dL)</label><input type="number" name="Hb" step="0.1" placeholder="11.5"></div>
+          <div class="field num-field-sm"><label>Hte (%)</label><input type="number" name="Hte" placeholder="35"></div>
+          <div class="field num-field-sm"><label>VGM (fL)</label><input type="number" name="VGM" placeholder="80"></div>
+          <div class="field num-field-sm"><label>TCMH (pg)</label><input type="number" name="TCMH" placeholder="27"></div>
+          <div class="field num-field-sm"><label>CCMH (g/dL)</label><input type="number" name="CCMH" placeholder="33"></div>
+          <div class="field num-field"><label>Plaquettes (10³/mm³)</label><input type="number" name="plaquettes" placeholder="250"></div>
+          <div class="field num-field-sm"><label>GB (10³/mm³)</label><input type="number" name="GB" placeholder="8"></div>
+        </div>
+        <div class="field" style="max-width:160px;margin-top:.3rem"><label>Numéro de fiche</label><input type="text" name="num_fiche" placeholder="ex: 00123"></div>
+
+        <hr>
+        <div class="sub">Bilan biochimique</div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Glycémie</div>
+            <div class="radio-row">
+              <label class="radio-item"><input type="radio" name="glycemie" value="Normale"> Normale</label>
+              <label class="radio-item"><input type="radio" name="glycemie" value="Hypoglycémie"> Hypoglycémie</label>
+              <label class="radio-item"><input type="radio" name="glycemie" value="Hyperglycémie"> Hyperglycémie</label>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Bilan rénal — Urée</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="uree" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="uree" value="Élevée"> Élevée</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Créatinine</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="creat" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="creat" value="Élevée"> Élevée</label></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Transaminases</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="transaminases" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="transaminases" value="Élevée"> Élevée</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">TP</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="TP" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="TP" value="Élevée"> Élevée</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">PCT</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="PCT" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="PCT" value="Élevée"> Élevée</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">CRP</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="CRP" value="Normale"> Normale</label><label class="radio-item"><input type="radio" name="CRP" value="Élevée"> Élevée</label></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Na (Sodium)</div>
+            <div class="radio-row">
+              <label class="radio-item"><input type="radio" name="Na" value="Normale"> Normale</label>
+              <label class="radio-item"><input type="radio" name="Na" value="Hyponatrémie"> Hyponatrémie</label>
+              <label class="radio-item"><input type="radio" name="Na" value="Hypernatrémie"> Hypernatrémie</label>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">K (Potassium)</div>
+            <div class="radio-row">
+              <label class="radio-item"><input type="radio" name="K" value="Normale"> Normale</label>
+              <label class="radio-item"><input type="radio" name="K" value="Hypokaliémie"> Hypokaliémie</label>
+              <label class="radio-item"><input type="radio" name="K" value="Hyperkaliémie"> Hyperkaliémie</label>
+            </div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="sub">Score local de gravité</div>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="score_gravite" value="Sérieux"> Sérieux</label>
+          <label class="radio-item"><input type="radio" name="score_gravite" value="Assez sévère"> Assez sévère</label>
+          <label class="radio-item"><input type="radio" name="score_gravite" value="Sévère"> Sévère</label>
+          <label class="radio-item"><input type="radio" name="score_gravite" value="Critique"> Critique</label>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION IV ===== -->
+    <div class="section">
+      <div class="section-header">IV — Prise en Charge Initiale</div>
+      <div class="section-body">
+
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Remplissage vasculaire</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="remplissage" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="remplissage" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Trachéotomie</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="tracheotomie" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="tracheotomie" value="Non"> Non</label></div>
+          </div>
+          <div class="field num-field-sm"><label>J H</label><input type="number" name="JH" placeholder="ex: 2"></div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Ventilation mécanique</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="ventil_meca" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="ventil_meca" value="Non"> Non</label></div>
+          </div>
+          <div class="field num-field-sm"><label>Durée VM (jours)</label><input type="number" name="duree_VM" placeholder="ex: 3"></div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Sédation</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="sedation" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="sedation" value="Non"> Non</label></div>
+          </div>
+          <div class="field num-field-sm"><label>Durée SD (jours)</label><input type="number" name="duree_SD" placeholder="ex: 2"></div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Curares en continu</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="curares" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="curares" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Anticonvulsivant</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="anticonvulsivant" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="anticonvulsivant" value="Non"> Non</label></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Transfusion sanguine</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="transfusion" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="transfusion" value="Non"> Non</label></div>
+          </div>
+          <div id="transfusion-type" style="display:none">
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Nature de la transfusion</div>
+            <div class="check-grid">
+              <label class="check-item"><input type="checkbox" name="transf_type" value="CG"> CG</label>
+              <label class="check-item"><input type="checkbox" name="transf_type" value="PLT"> PLT</label>
+              <label class="check-item"><input type="checkbox" name="transf_type" value="PFC"> PFC</label>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Antipaludique</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="antipaludique" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="antipaludique" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Antibiotique</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="antibiotique" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="antibiotique" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Drainage pleural</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="drainage_pleural" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="drainage_pleural" value="Non"> Non</label></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Hémodialyse</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="hemodialyse" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="hemodialyse" value="Non"> Non</label></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Intervention chirurgicale</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="intervention_chir" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="intervention_chir" value="Non"> Non</label></div>
+          </div>
+          <div class="field" style="flex:1;min-width:180px"><label>Si oui, laquelle</label><input type="text" name="intervention_chir_detail"></div>
+        </div>
+        <div class="field"><label>Autres traitements</label><textarea name="autres_traitements" rows="2"></textarea></div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION VII ===== -->
+    <div class="section">
+      <div class="section-header">VII — Évolution et Issue du Séjour</div>
+      <div class="section-body">
+
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Complication</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="complication" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="complication" value="Non"> Non</label></div>
+          </div>
+        </div>
+
+        <div class="sub">Nature des complications</div>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="Infections nosocomiales"> Infections nosocomiales</label>
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="Neuromyopathie de réanimation"> Neuromyopathie de réanimation</label>
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="Delirium"> Delirium</label>
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="Dénutrition"> Dénutrition</label>
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="Escarres"> Escarres</label>
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="Anémie"> Anémie</label>
+          <label class="check-item"><input type="checkbox" name="complic_nature" value="ACR"> ACR</label>
+        </div>
+
+        <div class="field-row" style="margin-top:.5rem">
+          <div class="field num-field-sm"><label>Si infections nosocomiales — Jour</label><input type="number" name="infect_noso_J" placeholder="ex: 4"></div>
+        </div>
+
+        <div class="sub">Si infections nosocomiales — type</div>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="infect_type" value="PAVM"> PAVM</label>
+          <label class="check-item"><input type="checkbox" name="infect_type" value="Pneumonies nosocomiales"> Pneumonies nosocomiales</label>
+          <label class="check-item"><input type="checkbox" name="infect_type" value="Infection urinaire"> Infection urinaire</label>
+          <label class="check-item"><input type="checkbox" name="infect_type" value="Infection sur cathéter"> Infection sur cathéter</label>
+        </div>
+
+        <div class="field-row" style="margin-top:.4rem">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Réinfection</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="reinfection" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="reinfection" value="Non"> Non</label></div>
+          </div>
+          <div class="field num-field-sm"><label>Nombre de réinfections</label><input type="number" name="nb_reinfections" placeholder="ex: 1"></div>
+        </div>
+
+        <hr>
+        <div class="sub">Si délirium / dénutrition</div>
+        <div class="field-row">
+          <div class="field num-field-sm"><label>Durée délirium (j)</label><input type="number" name="delirium_j" placeholder="ex: 2"></div>
+          <div class="field num-field-sm"><label>Durée dénutrition (j)</label><input type="number" name="denutrition_j" placeholder="ex: 5"></div>
+          <div class="field num-field-sm"><label>Périmètre brachial (cm)</label><input type="number" name="perimetre_brachial" step="0.1" placeholder="ex: 12.5"></div>
+          <div class="field num-field-sm"><label>Albuminémie</label><input type="number" name="albuminemie" step="0.1" placeholder="ex: 35"></div>
+          <div class="field num-field-sm"><label>Protidémie</label><input type="number" name="protidemie" step="0.1" placeholder="ex: 60"></div>
+          <div class="field num-field-sm"><label>Magnésémie</label><input type="number" name="magnesemie" step="0.1" placeholder="ex: 0.8"></div>
+          <div class="field num-field-sm"><label>Phosphorémie</label><input type="number" name="phosphoremie" step="0.1" placeholder="ex: 1.2"></div>
+          <div class="field num-field-sm"><label>Calcémie</label><input type="number" name="calcemie" step="0.1" placeholder="ex: 2.4"></div>
+        </div>
+
+        <hr>
+        <div class="field-row">
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Évolution favorable</div>
+            <div class="radio-row">
+              <label class="radio-item"><input type="radio" name="evolution_favorable" value="Oui"> Oui</label>
+              <label class="radio-item"><input type="radio" name="evolution_favorable" value="Non"> Non</label>
+              <label class="radio-item"><input type="radio" name="evolution_favorable" value="Transfert"> Transfert</label>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Décès</div>
+            <div class="radio-row"><label class="radio-item"><input type="radio" name="deces" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="deces" value="Non"> Non</label></div>
+          </div>
+          <div class="field num-field-sm"><label>Si décès — Jour</label><input type="number" name="deces_J" placeholder="ex: 7"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button type="submit">✅ Enregistrer la fiche</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <button id="modal-close" onclick="closeModal()">✖ Fermer</button>
+    <button class="print-btn" onclick="window.print()">🖨 Imprimer</button>
+    <button class="print-btn" onclick="nouvelleFiche()" style="background:#38a169;color:#fff;border-color:#38a169;margin-left:.5rem">➕ Nouvelle fiche</button>
+    <h2 id="modal-title" style="color:#38a169">✅ Fiche enregistrée avec succès !</h2>
+    <p id="modal-subtitle" style="font-size:13px;color:#718096;margin-bottom:1rem">Les données ont été sauvegardées dans Netlify. Vous pouvez imprimer, fermer ou saisir une nouvelle fiche.</p>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('input[name="transfusion"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('transfusion-type').style.display =
+        r.value === 'Oui' && r.checked ? 'block' : 'none';
+      if (r.value !== 'Oui') {
+        document.querySelectorAll('input[name="transf_type"]').forEach(c => c.checked = false);
+      }
+    });
+  });
+
+  function getChecked(name) {
+    return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(e => e.value).join(', ') || '—';
+  }
+  function getRadio(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '—';
+  }
+  function getVal(name) {
+    const el = document.querySelector(`[name="${name}"]`);
+    return (el && el.value.trim()) ? el.value.trim() : '—';
+  }
+  function row(label, value) {
+    if (value === '—') return '';
+    return `<div class="modal-row"><span class="modal-key">${label}</span><span class="modal-val">${value}</span></div>`;
+  }
+  function secTitle(t) {
+    return `<div class="modal-section-title">${t}</div>`;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    // ---- Collecte toutes les données du formulaire ----
+    const formEl = e.target;
+
+    // Construire un objet avec toutes les valeurs
+    const data = {};
+
+    // Champs texte et nombre
+    formEl.querySelectorAll('input[type=text], input[type=number], textarea').forEach(el => {
+      if (el.name && el.name !== 'form-name') {
+        data[el.name] = el.value.trim() || '';
+      }
+    });
+
+    // Radios
+    formEl.querySelectorAll('input[type=radio]:checked').forEach(el => {
+      data[el.name] = el.value;
+    });
+
+    // Checkboxes multiples → texte groupé
+    const multiFields = ['occup','lieu_prov','atcd','motif','complic_nature','infect_type','transf_type'];
+    multiFields.forEach(name => {
+      const vals = [...formEl.querySelectorAll('input[name="' + name + '"]:checked')].map(i => i.value);
+      data[name] = vals.join(', ') || '';
+    });
+
+    // ---- Envoi à Netlify Forms ----
+    const body = Object.entries({
+      'form-name': 'fiche-enquete',
+      ...data
+    }).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
+
+    // ---- Envoi vers Google Sheets ----
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjrycU5w5u2JF4i5z0OcOTFLOH3Nuj6-Jgx-Gy1gbgksW2Y8OIUk_BkVlAcnUbYdvU/exec';
+
+    // Ajouter la date et heure de soumission
+    data['date_soumission'] = new Date().toLocaleString('fr-FR');
+
+    const modalTitle = document.getElementById('modal-title');
+    const modalSubtitle = document.getElementById('modal-subtitle');
+
+    // Afficher un message de chargement
+    modalTitle.innerHTML = '⏳ Enregistrement en cours...';
+    modalTitle.style.color = '#2b6cb0';
+    document.getElementById('modal-overlay').classList.add('show');
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      modalTitle.innerHTML = '✅ Fiche enregistrée avec succès !';
+      modalTitle.style.color = '#38a169';
+      modalSubtitle.innerHTML = '✅ Les données ont été sauvegardées dans Google Sheets. Vous pouvez imprimer, fermer ou saisir une nouvelle fiche.';
+    } catch(err) {
+      console.warn('Google Sheets error:', err);
+      modalTitle.innerHTML = '⚠️ Problème de connexion';
+      modalTitle.style.color = '#e53e3e';
+      modalSubtitle.innerHTML = '⚠️ Vérifiez votre connexion internet et réessayez.';
+    }
+
+    const html = `
+      ${secTitle('Identification du Client')}
+      ${row('ID Client', getVal('id_client'))}
+      ${secTitle('I — Données socio-démographiques')}
+      ${row('Durée hospitalisation (j)', getVal('duree_hospit'))}
+      ${row('Âge (mois)', getVal('age_mois'))}
+      ${row('Âge (années)', getVal('age_annees'))}
+      ${row('Sexe', getRadio('sexe'))}
+      ${row('Occupation des parents', getChecked('occup'))}
+      ${row('Service de provenance', getRadio('service_prov'))}
+      ${row('Lieu de provenance', getChecked('lieu_prov'))}
+      ${secTitle('III — Données cliniques')}
+      ${row('Antécédents', getChecked('atcd'))}
+      ${row('Autres antécédents', getVal('atcd_autres'))}
+      ${row("Motif d'admission", getChecked('motif'))}
+      ${row("Nature de l'affection", getRadio('nature_affection'))}
+      ${row('Coloration des muqueuses', getRadio('coloration'))}
+      ${row('Ictère', getRadio('ictere'))}
+      ${row('Sueurs', getRadio('sueurs'))}
+      ${row('Température des extrémités', getRadio('temp_extrem'))}
+      ${row('Pression artérielle', getRadio('PA'))}
+      ${row('FC (bpm)', getVal('FC'))}
+      ${row('Fréquence respiratoire', getRadio('FR'))}
+      ${row('Détresse respiratoire', getRadio('detresse_resp'))}
+      ${row('SpO2 (%)', getVal('SpO2'))}
+      ${row('Épanchement pleural', getRadio('epanch_pleural'))}
+      ${row('Humeur', getRadio('humeur'))}
+      ${row('Conscience', getRadio('conscience'))}
+      ${row('Score de Glasgow', getVal('glasgow'))}
+      ${row('Score de Blantyre', getVal('blantyre'))}
+      ${row('Déficit moteur', getRadio('deficit_moteur'))}
+      ${row('Convulsions', getRadio('convulsions'))}
+      ${row('Raideur de la nuque', getRadio('raideur_nuque'))}
+      ${row('Bilan digestif normal', getRadio('digestif_normal'))}
+      ${row('Hb (g/dL)', getVal('Hb'))}
+      ${row('Hte (%)', getVal('Hte'))}
+      ${row('VGM (fL)', getVal('VGM'))}
+      ${row('TCMH (pg)', getVal('TCMH'))}
+      ${row('CCMH (g/dL)', getVal('CCMH'))}
+      ${row('Plaquettes (10³/mm³)', getVal('plaquettes'))}
+      ${row('GB (10³/mm³)', getVal('GB'))}
+      ${row('Numéro de fiche', getVal('num_fiche'))}
+      ${row('Glycémie', getRadio('glycemie'))}
+      ${row('Urée', getRadio('uree'))}
+      ${row('Créatinine', getRadio('creat'))}
+      ${row('Transaminases', getRadio('transaminases'))}
+      ${row('TP', getRadio('TP'))}
+      ${row('PCT', getRadio('PCT'))}
+      ${row('CRP', getRadio('CRP'))}
+      ${row('Sodium (Na)', getRadio('Na'))}
+      ${row('Potassium (K)', getRadio('K'))}
+      ${row('Score de gravité', getRadio('score_gravite'))}
+      ${secTitle('IV — Prise en charge initiale')}
+      ${row('Remplissage vasculaire', getRadio('remplissage'))}
+      ${row('Trachéotomie', getRadio('tracheotomie'))}
+      ${row('J H', getVal('JH'))}
+      ${row('Ventilation mécanique', getRadio('ventil_meca'))}
+      ${row('Durée VM (j)', getVal('duree_VM'))}
+      ${row('Sédation', getRadio('sedation'))}
+      ${row('Durée SD (j)', getVal('duree_SD'))}
+      ${row('Curares en continu', getRadio('curares'))}
+      ${row('Anticonvulsivant', getRadio('anticonvulsivant'))}
+      ${row('Transfusion sanguine', getRadio('transfusion'))}
+      ${row('Nature transfusion', getChecked('transf_type'))}
+      ${row('Antipaludique', getRadio('antipaludique'))}
+      ${row('Antibiotique', getRadio('antibiotique'))}
+      ${row('Drainage pleural', getRadio('drainage_pleural'))}
+      ${row('Hémodialyse', getRadio('hemodialyse'))}
+      ${row('Intervention chirurgicale', getRadio('intervention_chir'))}
+      ${row('Détail intervention', getVal('intervention_chir_detail'))}
+      ${row('Autres traitements', getVal('autres_traitements'))}
+      ${secTitle('VII — Évolution et issue')}
+      ${row('Complication', getRadio('complication'))}
+      ${row('Nature des complications', getChecked('complic_nature'))}
+      ${row('Infections nosocomiales — Jour', getVal('infect_noso_J'))}
+      ${row('Type infection nosocomiale', getChecked('infect_type'))}
+      ${row('Réinfection', getRadio('reinfection'))}
+      ${row('Nombre de réinfections', getVal('nb_reinfections'))}
+      ${row('Durée délirium (j)', getVal('delirium_j'))}
+      ${row('Durée dénutrition (j)', getVal('denutrition_j'))}
+      ${row('Périmètre brachial (cm)', getVal('perimetre_brachial'))}
+      ${row('Albuminémie', getVal('albuminemie'))}
+      ${row('Protidémie', getVal('protidemie'))}
+      ${row('Magnésémie', getVal('magnesemie'))}
+      ${row('Phosphorémie', getVal('phosphoremie'))}
+      ${row('Calcémie', getVal('calcemie'))}
+      ${row('Évolution favorable', getRadio('evolution_favorable'))}
+      ${row('Décès', getRadio('deces'))}
+      ${row('Décès — Jour', getVal('deces_J'))}
+    `;
+    document.getElementById('modal-content').innerHTML = html;
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+
+  function nouvelleFiche() {
+    // Ferme le modal
+    document.getElementById('modal-overlay').classList.remove('show');
+    // Remet tout le formulaire à zéro
+    document.getElementById('mainForm').reset();
+    // Masque le bloc transfusion
+    document.getElementById('transfusion-type').style.display = 'none';
+    // Remonte en haut de la page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+</body>
+</html>
