@@ -155,6 +155,24 @@
   button[type=submit]:hover { background: #2c5282; }
   button[type=submit]:active { transform: scale(.98); }
 
+  /* ---- REPARTITION BLOCK ---- */
+  .repartition-block {
+    border: 1px solid #bee3f8;
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    background: #ebf8ff;
+    margin-bottom: .65rem;
+  }
+  .repartition-block .repartition-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2b6cb0;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .5rem;
+  }
+  .repartition-block .field-row { margin-bottom: 0; }
+
   /* ---- MODAL ---- */
   #modal-overlay {
     display: none;
@@ -599,6 +617,37 @@
             <div class="radio-row"><label class="radio-item"><input type="radio" name="hemodialyse" value="Oui"> Oui</label><label class="radio-item"><input type="radio" name="hemodialyse" value="Non"> Non</label></div>
           </div>
         </div>
+
+        <!-- ===== NOUVEAUX CHAMPS RÉPARTITION ===== -->
+        <hr>
+        <div class="sub">Répartition des patients selon les soins</div>
+
+        <div class="repartition-block">
+          <div class="repartition-title">Répartition des patients selon un Soin Critique</div>
+          <div class="field-row">
+            <div class="field num-field-sm"><label>De J (jour)</label><input type="number" name="soin_critique_j_debut" min="0" placeholder="ex: 1"></div>
+            <div class="field num-field-sm"><label>À J (jour)</label><input type="number" name="soin_critique_j_fin" min="0" placeholder="ex: 5"></div>
+          </div>
+        </div>
+
+        <div class="repartition-block">
+          <div class="repartition-title">Répartition des patients selon un Soin Lourd</div>
+          <div class="field-row">
+            <div class="field num-field-sm"><label>De J (jour)</label><input type="number" name="soin_lourd_j_debut" min="0" placeholder="ex: 1"></div>
+            <div class="field num-field-sm"><label>À J (jour)</label><input type="number" name="soin_lourd_j_fin" min="0" placeholder="ex: 5"></div>
+          </div>
+        </div>
+
+        <div class="repartition-block">
+          <div class="repartition-title">Répartition des patients selon un Soin de Métier</div>
+          <div class="field-row">
+            <div class="field num-field-sm"><label>De J (jour)</label><input type="number" name="soin_metier_j_debut" min="0" placeholder="ex: 1"></div>
+            <div class="field num-field-sm"><label>À J (jour)</label><input type="number" name="soin_metier_j_fin" min="0" placeholder="ex: 5"></div>
+          </div>
+        </div>
+        <!-- ===== FIN NOUVEAUX CHAMPS ===== -->
+
+        <hr>
         <div class="field-row">
           <div>
             <div style="font-size:12px;color:#718096;font-weight:600;margin-bottom:3px">Intervention chirurgicale</div>
@@ -735,51 +784,49 @@
   function secTitle(t) {
     return `<div class="modal-section-title">${t}</div>`;
   }
+  function rangeRow(label, nameDebut, nameFin) {
+    const d = getVal(nameDebut);
+    const f = getVal(nameFin);
+    if (d === '—' && f === '—') return '';
+    const dStr = d !== '—' ? `J${d}` : '—';
+    const fStr = f !== '—' ? `J${f}` : '—';
+    return `<div class="modal-row"><span class="modal-key">${label}</span><span class="modal-val">${dStr} à ${fStr}</span></div>`;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // ---- Collecte toutes les données du formulaire ----
     const formEl = e.target;
-
-    // Construire un objet avec toutes les valeurs
     const data = {};
 
-    // Champs texte et nombre
     formEl.querySelectorAll('input[type=text], input[type=number], textarea').forEach(el => {
       if (el.name && el.name !== 'form-name') {
         data[el.name] = el.value.trim() || '';
       }
     });
 
-    // Radios
     formEl.querySelectorAll('input[type=radio]:checked').forEach(el => {
       data[el.name] = el.value;
     });
 
-    // Checkboxes multiples → texte groupé
     const multiFields = ['occup','lieu_prov','atcd','motif','complic_nature','infect_type','transf_type'];
     multiFields.forEach(name => {
       const vals = [...formEl.querySelectorAll('input[name="' + name + '"]:checked')].map(i => i.value);
       data[name] = vals.join(', ') || '';
     });
 
-    // ---- Envoi à Netlify Forms ----
     const body = Object.entries({
       'form-name': 'fiche-enquete',
       ...data
     }).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
 
-    // ---- Envoi vers Google Sheets ----
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7ekxSpiJ8yjWej-hb7_CGa46xSVcjW84wZbsVRKvz2mu8Kwtl5x_-kG5js5GOiKQw/exec';
 
-    // Ajouter la date et heure de soumission
     data['date_soumission'] = new Date().toLocaleString('fr-FR');
 
     const modalTitle = document.getElementById('modal-title');
     const modalSubtitle = document.getElementById('modal-subtitle');
 
-    // Afficher un message de chargement
     modalTitle.innerHTML = '⏳ Enregistrement en cours...';
     modalTitle.style.color = '#2b6cb0';
     document.getElementById('modal-overlay').classList.add('show');
@@ -869,6 +916,9 @@
       ${row('Antibiotique', getRadio('antibiotique'))}
       ${row('Drainage pleural', getRadio('drainage_pleural'))}
       ${row('Hémodialyse', getRadio('hemodialyse'))}
+      ${rangeRow('Soin Critique (jours)', 'soin_critique_j_debut', 'soin_critique_j_fin')}
+      ${rangeRow('Soin Lourd (jours)', 'soin_lourd_j_debut', 'soin_lourd_j_fin')}
+      ${rangeRow('Soin de Métier (jours)', 'soin_metier_j_debut', 'soin_metier_j_fin')}
       ${row('Intervention chirurgicale', getRadio('intervention_chir'))}
       ${row('Détail intervention', getVal('intervention_chir_detail'))}
       ${row('Autres traitements', getVal('autres_traitements'))}
@@ -899,13 +949,9 @@
   }
 
   function nouvelleFiche() {
-    // Ferme le modal
     document.getElementById('modal-overlay').classList.remove('show');
-    // Remet tout le formulaire à zéro
     document.getElementById('mainForm').reset();
-    // Masque le bloc transfusion
     document.getElementById('transfusion-type').style.display = 'none';
-    // Remonte en haut de la page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
